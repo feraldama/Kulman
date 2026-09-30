@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+build/
+
+# Variables de entorno (credenciales)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+
+# Backups de base de datos (datos reales, archivo pesado)
+api/db/*_backup.sql

@@ -1,0 +1,46 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Estructura del Proyecto (Por Tipo y Funcionalidad)
+
+El proyecto está dividido en dos grandes partes:
+
+- [api/](mdc:api): Contiene todo el backend (servidor, lógica de negocio, acceso a datos, etc.).
+- [client/](mdc:client): Contiene todo el frontend desarrollado con React, Vite y TypeScript.
+
+## Arquitectura por tipo y features
+
+Tanto en el backend como en el frontend, la lógica del negocio se refleja en las carpetas, agrupando los archivos por tipo y funcionalidad (features). Esto facilita la navegación, aunque puede implicar cierta repetición de funcionalidades en diferentes carpetas.
+
+### Ejemplo de estructura en [client/src/](mdc:client/src):
+
+- [assets/](mdc:client/src/assets): Recursos estáticos (imágenes, íconos, etc.).
+- [api/](mdc:client/src/api): Lógica de comunicación con APIs.
+- [configs/](mdc:client/src/configs): Configuraciones generales del frontend.
+- [components/](mdc:client/src/components): Componentes React agrupados por feature:
+  - [auth/](mdc:client/src/components/auth): Componentes de autenticación (ej: [SignUpForm.tsx](mdc:client/src/components/auth/SignUpForm.tsx)).
+  - [payment/](mdc:client/src/components/payment): Componentes de pagos (ej: [PaymentForm.tsx](mdc:client/src/components/payment/PaymentForm.tsx)).
+  - [common/](mdc:client/src/components/common): Componentes reutilizables (ej: [Button.tsx](mdc:client/src/components/common/Button.tsx)).
+  - [employees/](mdc:client/src/components/employees): Componentes de empleados (ej: [EmployeeList.tsx](mdc:client/src/components/employees/EmployeeList.tsx), [EmployeeSummary.tsx](mdc:client/src/components/employees/EmployeeSummary.tsx)).
+- [hooks/](mdc:client/src/hooks): Custom hooks agrupados por feature:
+  - [auth/](mdc:client/src/hooks/auth): Hooks de autenticación (ej: [useAuth.ts](mdc:client/src/hooks/auth/useAuth.ts)).
+  - [payment/](mdc:client/src/hooks/payment): Hooks de pagos (ej: [usePayment.ts](mdc:client/src/hooks/payment/usePayment.ts)).
+  - [employees/](mdc:client/src/hooks/employees): Hooks de empleados (ej: [useEmployees.ts](mdc:client/src/hooks/employees/useEmployees.ts), [useUpdateEmployee.ts](mdc:client/src/hooks/employees/useUpdateEmployee.ts)).
+- [lib/](mdc:client/src/lib): Librerías utilitarias propias.
+- [services/](mdc:client/src/services): Servicios de negocio o integración externa.
+- [states/](mdc:client/src/states): Gestión de estado global o por feature.
+- [utils/](mdc:client/src/utils): Funciones utilitarias generales.
+
+### Ejemplo de estructura en [api/](mdc:api):
+
+- [controllers/](mdc:api/controllers): Controladores agrupados por feature.
+- [routes/](mdc:api/routes): Rutas agrupadas por feature.
+- [models/](mdc:api/models): Modelos de datos agrupados por feature.
+- [services/](mdc:api/services): Servicios de negocio agrupados por feature.
+- [middlewares/](mdc:api/middlewares): Middlewares reutilizables.
+- [utils/](mdc:api/utils): Funciones utilitarias generales.
+
+Esta estructura facilita la escalabilidad y el mantenimiento, agrupando archivos por funcionalidad y tipo en ambos entornos.
+

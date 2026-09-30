@@ -1,0 +1,591 @@
+import { useEffect, useState, useRef } from "react";
+import Modal from "../common/Modal";
+import SearchButton from "../common/Input/SearchButton";
+import ActionButton from "../common/Button/ActionButton";
+import DataTable from "../common/Table/DataTable";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import { getLocales } from "../../services/locales.service";
+import { getAllTiposPrenda } from "../../services/tipoprenda.service";
+import { formatMiles } from "../../utils/formato";
+
+interface Producto {
+  ProductoId?: number;
+  ProductoCodigo: string;
+  ProductoNombre: string;
+  ProductoPrecioVenta: number;
+  ProductoPrecioVentaMayorista?: number;
+  ProductoPrecioUnitario?: number;
+  ProductoPrecioPromedio?: number;
+  ProductoStock: number;
+  ProductoStockUnitario?: number;
+  ProductoCantidadCaja?: number;
+  ProductoIVA?: number;
+  ProductoStockMinimo?: number;
+  ProductoImagen?: string;
+  ProductoImagen_GXI?: string;
+  LocalId: number;
+  TipoPrendaId?: number;
+  TipoPrendaNombre?: string;
+  [key: string]: unknown;
+}
+
+interface Pagination {
+  totalItems: number;
+}
+
+interface ProductsListProps {
+  productos: Producto[];
+  onDelete?: (item: Producto) => void;
+  onEdit?: (item: Producto) => void;
+  onCreate?: () => void;
+  pagination?: Pagination;
+  onSearch: (value: string) => void;
+  searchTerm: string;
+  onKeyPress?: React.KeyboardEventHandler<HTMLInputElement>;
+  onSearchSubmit: () => void;
+  isModalOpen: boolean;
+  onCloseModal: () => void;
+  currentProduct?: Producto | null;
+  onSubmit: (formData: Producto) => void;
+  sortKey?: string;
+  sortOrder?: "asc" | "desc";
+  onSort?: (key: string, order: "asc" | "desc") => void;
+}
+
+export default function ProductsList({
+  productos,
+  onDelete,
+  onEdit,
+  onCreate,
+  pagination,
+  onSearch,
+  searchTerm,
+  onKeyPress,
+  onSearchSubmit,
+  isModalOpen,
+  onCloseModal,
+  currentProduct,
+  onSubmit,
+  sortKey,
+  sortOrder,
+  onSort,
+}: ProductsListProps) {
+  const [formData, setFormData] = useState<Producto>({
+    ProductoCodigo: "0",
+    ProductoNombre: "",
+    ProductoPrecioVenta: 0,
+    ProductoPrecioVentaMayorista: 0,
+    ProductoPrecioUnitario: 0,
+    ProductoPrecioPromedio: 0,
+    ProductoStock: 0,
+    ProductoStockUnitario: 0,
+    ProductoCantidadCaja: 1,
+    ProductoIVA: 0,
+    ProductoStockMinimo: 0,
+    ProductoImagen: "",
+    ProductoImagen_GXI: "",
+    LocalId: 1,
+    TipoPrendaId: undefined,
+  });
+  const [locales, setLocales] = useState<
+    { LocalId: number; LocalNombre: string }[]
+  >([]);
+  const [tiposPrenda, setTiposPrenda] = useState<
+    { TipoPrendaId: number; TipoPrendaNombre: string }[]
+  >([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Vista ampliada de la imagen al pasar el mouse por la miniatura
+  const [imagePreview, setImagePreview] = useState<{
+    src: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const moverPreview = (src: string) => (e: React.MouseEvent) => {
+    setImagePreview({ src, x: e.clientX, y: e.clientY });
+  };
+
+  useEffect(() => {
+    if (currentProduct) {
+      setFormData({
+        ...currentProduct,
+        ProductoPrecioVenta: currentProduct.ProductoPrecioVenta || 0,
+        ProductoPrecioVentaMayorista:
+          currentProduct.ProductoPrecioVentaMayorista || 0,
+        ProductoPrecioUnitario: currentProduct.ProductoPrecioUnitario || 0,
+        ProductoPrecioPromedio:
+          typeof currentProduct.ProductoPrecioPromedio === "string"
+            ? parseFloat(currentProduct.ProductoPrecioPromedio)
+            : currentProduct.ProductoPrecioPromedio || 0,
+        ProductoStock: currentProduct.ProductoStock || 0,
+        ProductoStockUnitario: currentProduct.ProductoStockUnitario || 0,
+        ProductoCantidadCaja: 1, // Siempre 1
+        ProductoIVA: currentProduct.ProductoIVA || 0,
+        ProductoStockMinimo: currentProduct.ProductoStockMinimo || 0,
+        ProductoImagen: currentProduct.ProductoImagen || "",
+        ProductoImagen_GXI: currentProduct.ProductoImagen_GXI || "",
+        LocalId: currentProduct.LocalId,
+        TipoPrendaId: currentProduct.TipoPrendaId || undefined,
+      });
+    } else {
+      setFormData({
+        ProductoCodigo: "0",
+        ProductoNombre: "",
+        ProductoPrecioVenta: 0,
+        ProductoPrecioVentaMayorista: 0,
+        ProductoPrecioUnitario: 0,
+        ProductoPrecioPromedio: 0,
+        ProductoStock: 0,
+        ProductoStockUnitario: 0,
+        ProductoCantidadCaja: 1,
+        ProductoIVA: 0,
+        ProductoStockMinimo: 0,
+        ProductoImagen: "",
+        ProductoImagen_GXI: "",
+        LocalId: 1,
+        TipoPrendaId: undefined,
+      });
+    }
+    Promise.all([getLocales(1, 1000), getAllTiposPrenda()]).then(
+      ([localesRes, tiposPrendaRes]) => {
+        setLocales(localesRes.data || []);
+        setTiposPrenda(tiposPrendaRes.data || []);
+      }
+    );
+  }, [currentProduct]);
+
+  // Manejar cambios en el formulario
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        type === "number" || name === "TipoPrendaId" || name === "LocalId"
+          ? value === ""
+            ? undefined
+            : Number(value)
+          : value,
+    }));
+  };
+
+  // Manejar cambios en el nombre del producto (forzar mayúsculas)
+  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setFormData((prev) => ({
+      ...prev,
+      ProductoNombre: value,
+    }));
+  };
+
+  // Manejar cambio de imagen (file input)
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        ProductoImagen: (reader.result as string).split(",")[1] || "",
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Eliminar imagen
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, ProductoImagen: "" }));
+  };
+
+  // Enviar formulario
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { ProductoImagen_GXI, ...cleanFormData } = formData; // Limpiamos ProductoImagen_GXI antes de enviar
+    // Asegurar valores por defecto para campos ocultos
+    const formDataWithDefaults = {
+      ...cleanFormData,
+      ProductoPrecioVentaMayorista:
+        cleanFormData.ProductoPrecioVentaMayorista || 0,
+      ProductoPrecioUnitario: cleanFormData.ProductoPrecioUnitario || 0,
+      ProductoPrecioPromedio: cleanFormData.ProductoPrecioPromedio || 0,
+      ProductoStockUnitario: cleanFormData.ProductoStockUnitario || 0,
+      ProductoCantidadCaja: 1, // Siempre 1
+      ProductoIVA: cleanFormData.ProductoIVA || 0,
+      ProductoStockMinimo: cleanFormData.ProductoStockMinimo || 0,
+    };
+    onSubmit(formDataWithDefaults);
+  };
+
+  // Configuración de columnas para la tabla
+  const columns = [
+    {
+      key: "ProductoId",
+      label: "ID",
+    },
+    {
+      key: "ProductoImagen",
+      label: "Imagen",
+      render: (item: Producto) =>
+        item.ProductoImagen ? (
+          <img
+            src={`data:image/jpeg;base64,${item.ProductoImagen}`}
+            alt={item.ProductoNombre}
+            className="h-12 w-12 object-cover rounded cursor-zoom-in"
+            loading="lazy"
+            decoding="async"
+            onMouseEnter={moverPreview(
+              `data:image/jpeg;base64,${item.ProductoImagen}`
+            )}
+            onMouseMove={moverPreview(
+              `data:image/jpeg;base64,${item.ProductoImagen}`
+            )}
+            onMouseLeave={() => setImagePreview(null)}
+          />
+        ) : (
+          "-"
+        ),
+    },
+    {
+      key: "ProductoCodigo",
+      label: "Código",
+    },
+    {
+      key: "ProductoNombre",
+      label: "Nombre",
+    },
+    {
+      // ProductoPrecioVenta se usa como precio de alquiler (ver formulario)
+      key: "ProductoPrecioVenta",
+      label: "Precio Alquiler",
+      render: (item: Producto) =>
+        `Gs. ${formatMiles(item.ProductoPrecioVenta || 0)}`,
+    },
+    {
+      key: "ProductoPrecioVentaMayorista",
+      label: "Precio Venta",
+      render: (item: Producto) =>
+        `Gs. ${formatMiles(item.ProductoPrecioVentaMayorista || 0)}`,
+    },
+    {
+      key: "ProductoStock",
+      label: "Stock",
+    },
+    {
+      key: "TipoPrendaNombre",
+      label: "Tipo de Prenda",
+      render: (item: Producto) => String(item.TipoPrendaNombre || "-"),
+    },
+    {
+      key: "LocalId",
+      label: "Local",
+      render: (item: Producto) =>
+        String(item.LocalNombre || item.LocalId || "-"),
+    },
+  ];
+
+  return (
+    <>
+      {/* Barra superior de búsqueda y acciones */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="flex-1">
+          <SearchButton
+            searchTerm={searchTerm}
+            onSearch={onSearch}
+            onKeyPress={onKeyPress}
+            onSearchSubmit={onSearchSubmit}
+            placeholder="Buscar productos"
+          />
+        </div>
+        <div className="py-4">
+          {onCreate && (
+            <ActionButton
+              label="Nuevo Producto"
+              onClick={onCreate}
+              icon={PlusIcon}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-gray-600">
+          Mostrando {productos.length} de {pagination?.totalItems} productos
+        </div>
+      </div>
+
+      {/* Tabla de productos usando el componente DataTable */}
+      <DataTable<Producto & { id: number }>
+        columns={columns}
+        data={productos.map((p) => ({ ...p, id: p.ProductoId ?? 0 }))}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        emptyMessage="No se encontraron productos"
+        sortKey={sortKey}
+        sortOrder={sortOrder}
+        onSort={onSort}
+      />
+
+      {/* Zoom de imagen al pasar el mouse por la miniatura */}
+      {imagePreview && (
+        <div
+          className="fixed z-50 pointer-events-none bg-white border border-gray-300 rounded-lg shadow-xl p-1"
+          style={{
+            left:
+              imagePreview.x + 360 > window.innerWidth
+                ? imagePreview.x - 344
+                : imagePreview.x + 24,
+            top: Math.min(
+              Math.max(imagePreview.y - 160, 8),
+              window.innerHeight - 340
+            ),
+          }}
+        >
+          <img
+            src={imagePreview.src}
+            alt="Vista ampliada"
+            className="h-80 w-80 object-contain rounded"
+          />
+        </div>
+      )}
+
+      {/* Modal para crear/editar */}
+      {isModalOpen && (
+        <Modal
+          open={isModalOpen}
+          onClose={onCloseModal}
+          title={currentProduct
+                    ? `Editar producto: ${currentProduct.ProductoNombre}`
+                    : "Crear nuevo producto"}
+        >
+            <form onSubmit={handleSubmit}>
+
+              <div className="max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Columna izquierda: Campos del formulario */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label
+                          htmlFor="ProductoCodigo"
+                          className="block mb-2 text-sm font-medium text-gray-900"
+                        >
+                          Código
+                        </label>
+                        <input
+                          type="text"
+                          name="ProductoCodigo"
+                          id="ProductoCodigo"
+                          value={formData.ProductoCodigo}
+                          onChange={handleInputChange}
+                          className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="ProductoNombre"
+                          className="block mb-2 text-sm font-medium text-gray-900"
+                        >
+                          Nombre
+                        </label>
+                        <input
+                          type="text"
+                          name="ProductoNombre"
+                          id="ProductoNombre"
+                          value={formData.ProductoNombre}
+                          onChange={handleNombreChange}
+                          className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 uppercase"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="ProductoPrecioVenta"
+                          className="block mb-2 text-sm font-medium text-gray-900"
+                        >
+                          Precio Alquiler
+                        </label>
+                        <input
+                          type="text"
+                          name="ProductoPrecioVenta"
+                          id="ProductoPrecioVenta"
+                          value={formatMiles(formData.ProductoPrecioVenta)}
+                          onChange={(e) => {
+                            // Eliminar puntos y formatear a número
+                            const raw = e.target.value.replace(/\./g, "");
+                            setFormData((prev) => ({
+                              ...prev,
+                              ProductoPrecioVenta: Number(raw),
+                            }));
+                          }}
+                          className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="ProductoPrecioVentaMayorista"
+                          className="block mb-2 text-sm font-medium text-gray-900"
+                        >
+                          Precio Venta
+                        </label>
+                        <input
+                          type="text"
+                          name="ProductoPrecioVentaMayorista"
+                          id="ProductoPrecioVentaMayorista"
+                          value={formatMiles(
+                            formData.ProductoPrecioVentaMayorista || 0
+                          )}
+                          onChange={(e) => {
+                            // Eliminar puntos y formatear a número
+                            const raw = e.target.value.replace(/\./g, "");
+                            setFormData((prev) => ({
+                              ...prev,
+                              ProductoPrecioVentaMayorista: Number(raw),
+                            }));
+                          }}
+                          className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="ProductoStock"
+                          className="block mb-2 text-sm font-medium text-gray-900"
+                        >
+                          Stock
+                        </label>
+                        <input
+                          type="number"
+                          name="ProductoStock"
+                          id="ProductoStock"
+                          value={formData.ProductoStock}
+                          onChange={handleInputChange}
+                          className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="TipoPrendaId"
+                          className="block mb-2 text-sm font-medium text-gray-900"
+                        >
+                          Tipo de Prenda *
+                        </label>
+                        <select
+                          name="TipoPrendaId"
+                          id="TipoPrendaId"
+                          value={formData.TipoPrendaId || ""}
+                          onChange={handleInputChange}
+                          className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
+                          required
+                        >
+                          <option value="">Seleccione un tipo de prenda</option>
+                          {tiposPrenda.map((tipo) => (
+                            <option
+                              key={tipo.TipoPrendaId}
+                              value={tipo.TipoPrendaId}
+                            >
+                              {tipo.TipoPrendaNombre}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="LocalId"
+                          className="block mb-2 text-sm font-medium text-gray-900"
+                        >
+                          Local
+                        </label>
+                        <select
+                          name="LocalId"
+                          id="LocalId"
+                          value={formData.LocalId}
+                          onChange={handleInputChange}
+                          className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5"
+                          required
+                        >
+                          <option value="">Seleccione un local</option>
+                          {locales.map((local) => (
+                            <option key={local.LocalId} value={local.LocalId}>
+                              {local.LocalNombre}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="col-span-2">
+                        <div className="flex gap-4">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full text-blue-600 hover:text-blue-800 border border-blue-300 bg-white rounded px-3 py-2 text-sm font-medium cursor-pointer"
+                          >
+                            Seleccionar imagen
+                          </button>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                            ref={fileInputRef}
+                          />
+                          {formData.ProductoImagen && (
+                            <button
+                              type="button"
+                              onClick={handleRemoveImage}
+                              className="w-full text-red-600 hover:text-red-800 border border-red-300 bg-white rounded px-3 py-2 text-sm font-medium"
+                            >
+                              Eliminar imagen
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Columna derecha: Imagen del producto */}
+                  <div className="lg:col-span-1">
+                    {/* No es una etiqueta de campo: no hay control acá, sólo
+                        la vista previa de la imagen */}
+                    <p className="block mb-2 text-sm font-medium text-gray-900">
+                      Imagen del producto
+                    </p>
+                    <div className="flex flex-col items-center gap-4">
+                      {formData.ProductoImagen ? (
+                        <img
+                          src={`data:image/jpeg;base64,${formData.ProductoImagen}`}
+                          alt="Imagen producto"
+                          className="w-full max-w-xs h-auto object-contain border rounded shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-full max-w-xs h-64 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                          <p className="text-slate-500 text-sm text-center px-4">
+                            No hay imagen seleccionada
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="-mx-6 mt-6 flex flex-wrap items-center gap-2 border-t border-slate-200 px-6 pt-5">
+                <ActionButton
+                  label={currentProduct ? "Actualizar" : "Crear"}
+                  type="submit"
+                />
+                <ActionButton
+                  label="Cancelar"
+                  variant="secondary"
+                  onClick={onCloseModal}
+                />
+              </div>
+            </form>
+        </Modal>
+      )}
+    </>
+  );
+}

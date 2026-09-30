@@ -1,0 +1,51 @@
+---
+description: Reglas para generar mensajes de commit en español
+globs:
+alwaysApply: true
+---
+
+# Reglas para Mensajes de Commit en Español
+
+## ⚠️ INSTRUCCIÓN CRÍTICA: IDIOMA OBLIGATORIO
+
+**TODOS los mensajes de commit generados por la IA DEBEN estar en ESPAÑOL.**
+**NUNCA generes mensajes de commit en inglés.**
+**SIEMPRE usa español para todos los mensajes de commit.**
+
+## Idioma y Formato
+
+- **OBLIGATORIO**: Generar todos los mensajes de commit en **español**
+- Los mensajes deben ser concisos y describir claramente los cambios realizados
+- Usar el formato convencional de commits: `[tipo]: Descripción breve en español`
+- **NO usar inglés bajo ninguna circunstancia para mensajes de commit**
+
+## Tipos de Commit
+
+- `feat`: Nueva funcionalidad
+- `fix`: Corrección de errores
+- `docs`: Cambios en la documentación
+- `style`: Cambios de formato (espacios, comas, etc.) que no afectan el código
+- `refactor`: Refactorización de código sin cambiar funcionalidad
+- `perf`: Mejoras de rendimiento
+- `test`: Agregar o modificar tests
+- `chore`: Tareas de mantenimiento, configuración, etc.
+- `build`: Cambios en el sistema de build o dependencias
+
+## Ejemplos de Mensajes en Español
+
+- `feat: Añadir función de registro de usuarios`
+- `fix: Corregir error al cargar lista de productos`
+- `docs: Actualizar documentación de la API`
+- `style: Formatear código según estándares del proyecto`
+- `refactor: Reorganizar estructura de componentes`
+- `perf: Optimizar consultas a la base de datos`
+- `test: Agregar tests para el módulo de ventas`
+- `chore: Actualizar dependencias del proyecto`
+- `build: Configurar Git Bash como terminal por defecto`
+
+## Reglas Adicionales
+
+- Usar verbos en infinitivo (añadir, corregir, actualizar, etc.)
+- Ser específico sobre qué se cambió
+- Si el commit incluye múltiples cambios relacionados, usar formato: `[tipo]: Descripción general`
+- Evitar mensajes genéricos como "cambios" o "actualización"
