@@ -1,0 +1,11 @@
+---
+description: La IA nunca hace commits ni push; solo el usuario
+globs:
+alwaysApply: true
+---
+
+# ⛔ Prohibido hacer commits o push
+
+- **NUNCA** ejecutar `git commit`, `git push`, ni comandos que modifiquen el historial o el remoto (`--amend`, `merge`, `rebase`, `tag`, `reset` sobre commits, etc.).
+- **Solo el usuario** hace commits y push.
+- La IA deja los cambios en el árbol de trabajo. Si se lo piden, puede **sugerir** el mensaje de commit (en español, según `commits-espanol.mdc`), pero no ejecutarlo.

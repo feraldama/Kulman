@@ -6,12 +6,12 @@
  */
 export const EMPRESA = {
   /** Nombre comercial, el que se muestra en grande. */
-  nombre: "Jennifer",
+  nombre: "KULMAN",
   /** Rubro, se muestra como bajada del nombre. */
-  rubro: "Alquiler de Vestidos",
+  rubro: "Alquiler y Venta de Trajes",
   /** Inicial para el monograma de la marca. */
-  inicial: "J",
-  telefono: "+595 994 593861",
+  inicial: "K",
+  telefono: "+595 972 173052",
   /** Dirección del local, se imprime en el ticket y en los reportes. */
   direccion: "Tte. Gutiérrez casi Mcal. Estigarribia - Itauguá",
 } as const;

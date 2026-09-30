@@ -1,5 +1,10 @@
 # Reglas de Cursor para el Proyecto
 
+## ⛔ PROHIBIDO: HACER COMMITS O PUSH
+
+**La IA NUNCA debe ejecutar `git commit` ni `git push` (ni amend, merge, rebase, tags o resets que modifiquen el historial o el remoto).**
+**Solo el usuario hace commits y push.** La IA deja los cambios en el árbol de trabajo y, si se lo piden, puede sugerir el mensaje de commit (en español), pero nunca ejecutarlo.
+
 ## ⚠️ INSTRUCCIÓN CRÍTICA: IDIOMA OBLIGATORIO PARA COMMITS
 
 **TODOS los mensajes de commit generados por la IA DEBEN estar en ESPAÑOL.**
