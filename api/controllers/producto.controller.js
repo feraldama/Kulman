@@ -1,4 +1,8 @@
 const Producto = require("../models/producto.model");
+const {
+  obtenerMiniatura,
+  invalidarMiniaturas,
+} = require("../utils/miniaturaProducto");
 
 // getAllProductos
 exports.getAllProductos = async (req, res) => {
@@ -14,7 +18,6 @@ exports.getAllProductos = async (req, res) => {
       sortBy,
       sortOrder
     );
-    convertirImagenes(productos);
     res.json({
       data: productos,
       pagination: {
@@ -50,7 +53,6 @@ exports.searchProductos = async (req, res) => {
       sortBy,
       sortOrder
     );
-    convertirImagenes(productos);
     res.json({
       data: productos,
       pagination: {
@@ -72,7 +74,6 @@ exports.getProductoById = async (req, res) => {
     if (!producto) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
-    convertirImagenes(producto);
     res.json(producto);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -129,6 +130,7 @@ exports.updateProducto = async (req, res) => {
       });
     }
     const updatedProducto = await Producto.update(id, productoData);
+    invalidarMiniaturas(id);
     if (!updatedProducto) {
       return res.status(404).json({
         success: false,
@@ -154,6 +156,7 @@ exports.deleteProducto = async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Producto.delete(id);
+    invalidarMiniaturas(id);
     if (!deleted) {
       return res.status(404).json({
         success: false,
@@ -177,25 +180,41 @@ exports.deleteProducto = async (req, res) => {
 exports.getAllProductosSinPaginacion = async (req, res) => {
   try {
     const productos = await Producto.getAll();
-    convertirImagenes(productos);
     res.json({ data: productos });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-function convertirImagenes(productos) {
-  if (!productos) return productos;
-  if (Array.isArray(productos)) {
-    productos.forEach((producto) => {
-      if (producto.ProductoImagen && Buffer.isBuffer(producto.ProductoImagen)) {
-        producto.ProductoImagen = producto.ProductoImagen.toString("base64");
-      }
-    });
-  } else {
-    if (productos.ProductoImagen && Buffer.isBuffer(productos.ProductoImagen)) {
-      productos.ProductoImagen = productos.ProductoImagen.toString("base64");
-    }
-  }
-  return productos;
+// Detecta el tipo de imagen por sus primeros bytes
+function tipoImagen(buffer) {
+  if (buffer[0] === 0x89 && buffer[1] === 0x50) return "image/png";
+  if (buffer[0] === 0x47 && buffer[1] === 0x49) return "image/gif";
+  if (buffer.slice(0, 4).toString() === "RIFF") return "image/webp";
+  return "image/jpeg";
 }
+
+// Devuelve la imagen del producto reducida (?ancho=96|160|320|640|1200).
+// "no-cache" + ETag: el navegador la guarda pero revalida, así una foto
+// editada se ve al instante y una sin cambios responde 304 sin cuerpo.
+exports.getProductoImagen = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: "Id inválido" });
+
+    const imagen = await obtenerMiniatura(id, req.query.ancho, Producto.getImagen);
+    if (!imagen) return res.status(404).end();
+
+    res.set({
+      "Content-Type": tipoImagen(imagen.buffer),
+      "Cache-Control": "private, no-cache",
+      ETag: imagen.etag,
+    });
+    if (req.headers["if-none-match"] === imagen.etag) {
+      return res.status(304).end();
+    }
+    res.send(imagen.buffer);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

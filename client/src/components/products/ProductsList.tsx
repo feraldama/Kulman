@@ -7,6 +7,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { getLocales } from "../../services/locales.service";
 import { getAllTiposPrenda } from "../../services/tipoprenda.service";
 import { formatMiles } from "../../utils/formato";
+import ImagenProducto from "../common/ImagenProducto";
 
 interface Producto {
   ProductoId?: number;
@@ -21,8 +22,12 @@ interface Producto {
   ProductoCantidadCaja?: number;
   ProductoIVA?: number;
   ProductoStockMinimo?: number;
+  // Base64 solo cuando se elige una imagen nueva; "" = borrarla;
+  // undefined = no tocar la que ya tiene
   ProductoImagen?: string;
   ProductoImagen_GXI?: string;
+  // La API indica si el producto tiene foto (no la manda en los listados)
+  TieneImagen?: boolean;
   LocalId: number;
   TipoPrendaId?: number;
   TipoPrendaNombre?: string;
@@ -96,13 +101,13 @@ export default function ProductsList({
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Vista ampliada de la imagen al pasar el mouse por la miniatura
   const [imagePreview, setImagePreview] = useState<{
-    src: string;
+    productoId: number;
     x: number;
     y: number;
   } | null>(null);
 
-  const moverPreview = (src: string) => (e: React.MouseEvent) => {
-    setImagePreview({ src, x: e.clientX, y: e.clientY });
+  const moverPreview = (productoId: number) => (e: React.MouseEvent) => {
+    setImagePreview({ productoId, x: e.clientX, y: e.clientY });
   };
 
   useEffect(() => {
@@ -122,7 +127,8 @@ export default function ProductsList({
         ProductoCantidadCaja: 1, // Siempre 1
         ProductoIVA: currentProduct.ProductoIVA || 0,
         ProductoStockMinimo: currentProduct.ProductoStockMinimo || 0,
-        ProductoImagen: currentProduct.ProductoImagen || "",
+        ProductoImagen: undefined, // se conserva la actual salvo que la cambien
+        TieneImagen: !!currentProduct.TieneImagen,
         ProductoImagen_GXI: currentProduct.ProductoImagen_GXI || "",
         LocalId: currentProduct.LocalId,
         TipoPrendaId: currentProduct.TipoPrendaId || undefined,
@@ -188,6 +194,7 @@ export default function ProductsList({
       setFormData((prev) => ({
         ...prev,
         ProductoImagen: (reader.result as string).split(",")[1] || "",
+        TieneImagen: true,
       }));
     };
     reader.readAsDataURL(file);
@@ -195,14 +202,14 @@ export default function ProductsList({
 
   // Eliminar imagen
   const handleRemoveImage = () => {
-    setFormData((prev) => ({ ...prev, ProductoImagen: "" }));
+    setFormData((prev) => ({ ...prev, ProductoImagen: "", TieneImagen: false }));
   };
 
   // Enviar formulario
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { ProductoImagen_GXI, ...cleanFormData } = formData; // Limpiamos ProductoImagen_GXI antes de enviar
+    const { ProductoImagen_GXI, TieneImagen, ...cleanFormData } = formData; // Campos que no se envían
     // Asegurar valores por defecto para campos ocultos
     const formDataWithDefaults = {
       ...cleanFormData,
@@ -228,21 +235,20 @@ export default function ProductsList({
       key: "ProductoImagen",
       label: "Imagen",
       render: (item: Producto) =>
-        item.ProductoImagen ? (
-          <img
-            src={`data:image/jpeg;base64,${item.ProductoImagen}`}
-            alt={item.ProductoNombre}
-            className="h-12 w-12 object-cover rounded cursor-zoom-in"
-            loading="lazy"
-            decoding="async"
-            onMouseEnter={moverPreview(
-              `data:image/jpeg;base64,${item.ProductoImagen}`
-            )}
-            onMouseMove={moverPreview(
-              `data:image/jpeg;base64,${item.ProductoImagen}`
-            )}
+        item.TieneImagen && item.ProductoId ? (
+          <span
+            className="block h-12 w-12 cursor-zoom-in"
+            onMouseEnter={moverPreview(item.ProductoId)}
+            onMouseMove={moverPreview(item.ProductoId)}
             onMouseLeave={() => setImagePreview(null)}
-          />
+          >
+            <ImagenProducto
+              productoId={item.ProductoId}
+              ancho={96}
+              alt={item.ProductoNombre}
+              className="h-12 w-12 object-cover rounded"
+            />
+          </span>
         ) : (
           "-"
         ),
@@ -342,8 +348,9 @@ export default function ProductsList({
             ),
           }}
         >
-          <img
-            src={imagePreview.src}
+          <ImagenProducto
+            productoId={imagePreview.productoId}
+            ancho={640}
             alt="Vista ampliada"
             className="h-80 w-80 object-contain rounded"
           />
@@ -532,7 +539,7 @@ export default function ProductsList({
                             className="hidden"
                             ref={fileInputRef}
                           />
-                          {formData.ProductoImagen && (
+                          {(formData.ProductoImagen || formData.TieneImagen) && (
                             <button
                               type="button"
                               onClick={handleRemoveImage}
@@ -559,6 +566,13 @@ export default function ProductsList({
                           src={`data:image/jpeg;base64,${formData.ProductoImagen}`}
                           alt="Imagen producto"
                           className="w-full max-w-xs h-auto object-contain border rounded shadow-sm"
+                        />
+                      ) : formData.TieneImagen && formData.ProductoId ? (
+                        <ImagenProducto
+                          productoId={formData.ProductoId}
+                          ancho={640}
+                          alt="Imagen producto"
+                          className="w-full max-w-xs h-64 object-contain border rounded shadow-sm"
                         />
                       ) : (
                         <div className="w-full max-w-xs h-64 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
