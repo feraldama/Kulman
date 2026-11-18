@@ -42,6 +42,7 @@ interface Cliente {
   ClienteApellido: string;
   ClienteDireccion: string;
   ClienteTelefono: string;
+  ClienteTelefono2?: string;
   ClienteTipo: string;
   UsuarioId: string;
 }
@@ -429,6 +430,7 @@ export default function Rentals() {
         ClienteApellido: clienteData.ClienteApellido,
         ClienteDireccion: clienteData.ClienteDireccion,
         ClienteTelefono: clienteData.ClienteTelefono,
+        ClienteTelefono2: clienteData.ClienteTelefono2,
         ClienteTipo: clienteData.ClienteTipo,
         UsuarioId: clienteData.UsuarioId
           ? String(clienteData.UsuarioId).trim()

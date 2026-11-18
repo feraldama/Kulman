@@ -19,6 +19,7 @@ interface Cliente {
   ClienteApellido: string;
   ClienteDireccion: string;
   ClienteTelefono: string;
+  ClienteTelefono2?: string;
   ClienteTipo: string;
   UsuarioId: string;
   [key: string]: unknown;

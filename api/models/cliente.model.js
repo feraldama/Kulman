@@ -32,6 +32,7 @@ const Cliente = {
         "ClienteApellido",
         "ClienteDireccion",
         "ClienteTelefono",
+        "ClienteTelefono2",
         "ClienteTipo",
         "UsuarioId",
       ];
@@ -74,6 +75,7 @@ const Cliente = {
         "ClienteApellido",
         "ClienteDireccion",
         "ClienteTelefono",
+        "ClienteTelefono2",
         "ClienteTipo",
         "UsuarioId",
       ];
@@ -134,9 +136,10 @@ const Cliente = {
           ClienteApellido,
           ClienteDireccion,
           ClienteTelefono,
+          ClienteTelefono2,
           ClienteTipo,
           UsuarioId
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         clienteData.ClienteRUC || "",
@@ -144,6 +147,7 @@ const Cliente = {
         clienteData.ClienteApellido || "",
         clienteData.ClienteDireccion || "",
         clienteData.ClienteTelefono || "",
+        clienteData.ClienteTelefono2 || "",
         clienteData.ClienteTipo || "",
         clienteData.UsuarioId ? String(clienteData.UsuarioId).trim() : "",
       ];
@@ -164,6 +168,7 @@ const Cliente = {
         "ClienteApellido",
         "ClienteDireccion",
         "ClienteTelefono",
+        "ClienteTelefono2",
         "ClienteTipo",
         "UsuarioId",
       ];

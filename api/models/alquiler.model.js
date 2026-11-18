@@ -579,7 +579,8 @@ const Alquiler = {
           a.*,
           c.ClienteNombre,
           c.ClienteApellido,
-          c.ClienteTelefono
+          c.ClienteTelefono,
+          c.ClienteTelefono2
         FROM alquiler a
         LEFT JOIN clientes c ON a.ClienteId = c.ClienteId
         WHERE a.AlquilerFechaEntrega IS NOT NULL
@@ -608,7 +609,8 @@ const Alquiler = {
           a.*,
           c.ClienteNombre,
           c.ClienteApellido,
-          c.ClienteTelefono
+          c.ClienteTelefono,
+          c.ClienteTelefono2
         FROM alquiler a
         LEFT JOIN clientes c ON a.ClienteId = c.ClienteId
         WHERE a.AlquilerFechaDevolucion IS NOT NULL

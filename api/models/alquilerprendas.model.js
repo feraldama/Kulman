@@ -443,7 +443,8 @@ const AlquilerPrendas = {
           c.ClienteId,
           c.ClienteNombre,
           c.ClienteApellido,
-          c.ClienteTelefono
+          c.ClienteTelefono,
+          c.ClienteTelefono2
         FROM alquilerprendas ap
         INNER JOIN alquiler a ON ap.AlquilerId = a.AlquilerId
         LEFT JOIN clientes c ON a.ClienteId = c.ClienteId

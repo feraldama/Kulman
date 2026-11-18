@@ -12,6 +12,7 @@ interface Cliente {
   ClienteApellido: string;
   ClienteDireccion: string;
   ClienteTelefono: string;
+  ClienteTelefono2?: string;
   ClienteTipo: string;
   UsuarioId: string;
 }
@@ -49,6 +50,7 @@ const ClienteModal: React.FC<ClienteModalProps> = ({
     ClienteApellido: "",
     ClienteDireccion: "",
     ClienteTelefono: "",
+    ClienteTelefono2: "",
     ClienteTipo: "MI",
     UsuarioId: currentUserId ? String(currentUserId).trim() : "",
   });
@@ -61,7 +63,7 @@ const ClienteModal: React.FC<ClienteModalProps> = ({
         (c.ClienteApellido || "")
           .toLowerCase()
           .includes(filtros.apellido.toLowerCase()) &&
-        (c.ClienteTelefono || "")
+        `${c.ClienteTelefono || ""} ${c.ClienteTelefono2 || ""}`
           .toLowerCase()
           .includes(filtros.telefono.toLowerCase())
     );
@@ -99,6 +101,7 @@ const ClienteModal: React.FC<ClienteModalProps> = ({
         ClienteApellido: "",
         ClienteDireccion: "",
         ClienteTelefono: "",
+        ClienteTelefono2: "",
         ClienteTipo: "MI",
         UsuarioId: currentUserId ? String(currentUserId).trim() : "",
       });
@@ -224,7 +227,12 @@ const ClienteModal: React.FC<ClienteModalProps> = ({
                   <td className="py-2 px-4">{c.ClienteRUC || ""}</td>
                   <td className="py-2 px-4">{c.ClienteNombre}</td>
                   <td className="py-2 px-4">{c.ClienteApellido || ""}</td>
-                  <td className="py-2 px-4">{c.ClienteTelefono || ""}</td>
+                  <td className="py-2 px-4">
+                    {c.ClienteTelefono || ""}
+                    {c.ClienteTelefono2 && (
+                      <span className="block">{c.ClienteTelefono2}</span>
+                    )}
+                  </td>
                   <td className="py-2 px-4">
                     {c.ClienteTipo === "MI"
                       ? "Minorista"
@@ -369,6 +377,22 @@ const ClienteModal: React.FC<ClienteModalProps> = ({
                         name="ClienteTelefono"
                         id="ClienteTelefono"
                         value={formData.ClienteTelefono}
+                        onChange={handleInputChange}
+                        className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
+                      />
+                    </div>
+                    <div className="col-span-6 sm:col-span-3">
+                      <label
+                        htmlFor="ClienteTelefono2"
+                        className="block mb-2 text-sm font-medium text-gray-900"
+                      >
+                        Teléfono 2
+                      </label>
+                      <input
+                        type="text"
+                        name="ClienteTelefono2"
+                        id="ClienteTelefono2"
+                        value={formData.ClienteTelefono2 || ""}
                         onChange={handleInputChange}
                         className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
                       />

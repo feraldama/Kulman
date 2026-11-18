@@ -43,6 +43,7 @@ interface Alquiler {
   ClienteNombre?: string;
   ClienteApellido?: string;
   ClienteTelefono?: string;
+  ClienteTelefono2?: string;
   ClienteRUC?: string;
   prendas: AlquilerPrenda[];
 }
@@ -285,11 +286,16 @@ function Dashboard() {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {alquiler.ClienteNombre} {alquiler.ClienteApellido}
-                      {alquiler.ClienteTelefono && (
-                        <span className="block text-xs text-gray-500">
-                          {alquiler.ClienteTelefono}
-                        </span>
-                      )}
+                      {[alquiler.ClienteTelefono, alquiler.ClienteTelefono2]
+                        .filter(Boolean)
+                        .map((tel) => (
+                          <span
+                            key={tel}
+                            className="block text-xs text-gray-500"
+                          >
+                            {tel}
+                          </span>
+                        ))}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>{formatearFecha(alquiler.AlquilerFechaEntrega)}</div>
@@ -444,11 +450,16 @@ function Dashboard() {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {alquiler.ClienteNombre} {alquiler.ClienteApellido}
-                      {alquiler.ClienteTelefono && (
-                        <span className="block text-xs text-gray-500">
-                          {alquiler.ClienteTelefono}
-                        </span>
-                      )}
+                      {[alquiler.ClienteTelefono, alquiler.ClienteTelefono2]
+                        .filter(Boolean)
+                        .map((tel) => (
+                          <span
+                            key={tel}
+                            className="block text-xs text-gray-500"
+                          >
+                            {tel}
+                          </span>
+                        ))}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>

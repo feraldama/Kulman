@@ -96,6 +96,7 @@ exports.createCliente = async (req, res) => {
       ClienteApellido: req.body.ClienteApellido || null,
       ClienteDireccion: req.body.ClienteDireccion || null,
       ClienteTelefono: req.body.ClienteTelefono || null,
+      ClienteTelefono2: req.body.ClienteTelefono2 || null,
       ClienteTipo: req.body.ClienteTipo,
       UsuarioId: req.body.UsuarioId ? String(req.body.UsuarioId).trim() : "",
     });
