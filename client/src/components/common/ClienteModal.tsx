@@ -376,6 +376,8 @@ const ClienteModal: React.FC<ClienteModalProps> = ({
                         type="text"
                         name="ClienteTelefono"
                         id="ClienteTelefono"
+
+                        maxLength={20} // largo de la columna en la BD
                         value={formData.ClienteTelefono}
                         onChange={handleInputChange}
                         className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"
@@ -392,6 +394,8 @@ const ClienteModal: React.FC<ClienteModalProps> = ({
                         type="text"
                         name="ClienteTelefono2"
                         id="ClienteTelefono2"
+
+                        maxLength={20} // largo de la columna en la BD
                         value={formData.ClienteTelefono2 || ""}
                         onChange={handleInputChange}
                         className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600"

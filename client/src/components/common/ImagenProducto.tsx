@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { obtenerUrlImagenProducto } from "../../services/imagenProducto.service";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  obtenerUrlImagenProducto,
+  suscribirCambiosImagen,
+  versionImagenProducto,
+} from "../../services/imagenProducto.service";
 
 interface Props {
   productoId: number;
@@ -25,6 +29,10 @@ function ImagenProducto({
   const [visible, setVisible] = useState(false);
   const [src, setSrc] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  // Cambia cuando se edita la foto de este producto: fuerza a pedirla de nuevo
+  const version = useSyncExternalStore(suscribirCambiosImagen, () =>
+    versionImagenProducto(productoId)
+  );
 
   // Solo se pide la imagen cuando el elemento está por entrar en pantalla:
   // en grillas con cientos de productos no se bajan las que no se ven
@@ -61,7 +69,7 @@ function ImagenProducto({
     return () => {
       vigente = false;
     };
-  }, [productoId, ancho, tieneImagen, visible]);
+  }, [productoId, ancho, tieneImagen, visible, version]);
 
   if (src) {
     return <img src={src} alt={alt} className={className} decoding="async" />;

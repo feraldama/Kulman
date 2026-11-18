@@ -58,6 +58,21 @@ export async function obtenerDataUrlImagenProducto(
   });
 }
 
+// Versión de la foto de cada producto: sube al invalidarla, para que los
+// componentes que ya la muestran en pantalla la vuelvan a pedir
+const versiones = new Map<number, number>();
+const oyentes = new Set<() => void>();
+
+export function suscribirCambiosImagen(oyente: () => void) {
+  oyentes.add(oyente);
+  return () => {
+    oyentes.delete(oyente);
+  };
+}
+
+export const versionImagenProducto = (productoId: number) =>
+  versiones.get(productoId) ?? 0;
+
 /** Descarta la imagen guardada de un producto (p. ej. después de editarlo). */
 export function invalidarImagenProducto(productoId: number) {
   for (const k of [...cache.keys()]) {
@@ -69,4 +84,6 @@ export function invalidarImagenProducto(productoId: number) {
       urls.delete(k);
     }
   }
+  versiones.set(productoId, versionImagenProducto(productoId) + 1);
+  oyentes.forEach((oyente) => oyente());
 }

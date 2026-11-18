@@ -6,7 +6,8 @@
     "start": "node ./index.js",
     "dev": "nodemon ./index.js",
     "migrate": "node ./db/migrate.js",
-    "test": "node --test --test-concurrency=1 \"test/**/*.test.js\""
+    "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
+    "imagenes:recomprimir": "node ./db/recomprimir-imagenes.js"
   },
   "keywords": [],
   "author": "",

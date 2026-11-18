@@ -8,6 +8,8 @@ import { getLocales } from "../../services/locales.service";
 import { getAllTiposPrenda } from "../../services/tipoprenda.service";
 import { formatMiles } from "../../utils/formato";
 import ImagenProducto from "../common/ImagenProducto";
+import { prepararImagenParaSubir } from "../../utils/imagen";
+import Swal from "sweetalert2";
 
 interface Producto {
   ProductoId?: number;
@@ -99,6 +101,7 @@ export default function ProductsList({
     { TipoPrendaId: number; TipoPrendaNombre: string }[]
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [procesandoImagen, setProcesandoImagen] = useState(false);
   // Vista ampliada de la imagen al pasar el mouse por la miniatura
   const [imagePreview, setImagePreview] = useState<{
     productoId: number;
@@ -186,18 +189,30 @@ export default function ProductsList({
   };
 
   // Manejar cambio de imagen (file input)
+  // La foto se achica en el navegador antes de guardarla: las de celular
+  // pesan varios MB y podían superar el límite de la API
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = ""; // permite volver a elegir el mismo archivo
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    setProcesandoImagen(true);
+    try {
+      const base64 = await prepararImagenParaSubir(file);
       setFormData((prev) => ({
         ...prev,
-        ProductoImagen: (reader.result as string).split(",")[1] || "",
+        ProductoImagen: base64,
         TieneImagen: true,
       }));
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Imagen no válida",
+        text:
+          error instanceof Error ? error.message : "No se pudo cargar la imagen",
+      });
+    } finally {
+      setProcesandoImagen(false);
+    }
   };
 
   // Eliminar imagen
@@ -528,9 +543,12 @@ export default function ProductsList({
                           <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-full text-blue-600 hover:text-blue-800 border border-blue-300 bg-white rounded px-3 py-2 text-sm font-medium cursor-pointer"
+                            disabled={procesandoImagen}
+                            className="w-full text-blue-600 hover:text-blue-800 border border-blue-300 bg-white rounded px-3 py-2 text-sm font-medium cursor-pointer disabled:cursor-wait disabled:opacity-60"
                           >
-                            Seleccionar imagen
+                            {procesandoImagen
+                              ? "Procesando imagen..."
+                              : "Seleccionar imagen"}
                           </button>
                           <input
                             type="file"
@@ -590,6 +608,8 @@ export default function ProductsList({
                 <ActionButton
                   label={currentProduct ? "Actualizar" : "Crear"}
                   type="submit"
+                  // Que no se guarde sin la foto mientras se está achicando
+                  disabled={procesandoImagen}
                 />
                 <ActionButton
                   label="Cancelar"

@@ -3,6 +3,27 @@ const {
   obtenerMiniatura,
   invalidarMiniaturas,
 } = require("../utils/miniaturaProducto");
+const { optimizarImagen } = require("../utils/optimizarImagen");
+
+// La foto llega en base64: se achica antes de guardarla, para que la base no
+// crezca aunque el cliente mande el original (versiones viejas del front,
+// formatos que el navegador no pudo procesar)
+async function optimizarImagenDelBody(body) {
+  if (typeof body.ProductoImagen !== "string" || body.ProductoImagen === "") {
+    return body;
+  }
+  const original = Buffer.from(body.ProductoImagen, "base64");
+  const optimizada = await optimizarImagen(original);
+  return { ...body, ProductoImagen: optimizada.toString("base64") };
+}
+
+// No devolver la foto en la respuesta (el cliente la pide aparte)
+const sinImagen = (producto) => {
+  if (!producto || typeof producto !== "object") return producto;
+  // eslint-disable-next-line no-unused-vars
+  const { ProductoImagen, ...resto } = producto;
+  return resto;
+};
 
 // getAllProductos
 exports.getAllProductos = async (req, res) => {
@@ -103,10 +124,12 @@ exports.createProducto = async (req, res) => {
       }
     }
     // Crear producto
-    const nuevoProducto = await Producto.create(req.body);
+    const nuevoProducto = await Producto.create(
+      await optimizarImagenDelBody(req.body)
+    );
     res.status(201).json({
       success: true,
-      data: nuevoProducto,
+      data: sinImagen(nuevoProducto),
       message: "Producto creado exitosamente",
     });
   } catch (error) {
@@ -129,7 +152,10 @@ exports.updateProducto = async (req, res) => {
         message: "ProductoNombre es un campo requerido",
       });
     }
-    const updatedProducto = await Producto.update(id, productoData);
+    const updatedProducto = await Producto.update(
+      id,
+      await optimizarImagenDelBody(productoData)
+    );
     invalidarMiniaturas(id);
     if (!updatedProducto) {
       return res.status(404).json({
